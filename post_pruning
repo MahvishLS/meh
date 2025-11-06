@@ -1,0 +1,61 @@
+import pandas as pd
+
+df = pd.read_csv('heart.csv')
+X = df.drop('target', axis=1)
+Y = df['target']
+
+from sklearn.model_selection import train_test_split
+
+X_train, X_test, y_train, y_test = train_test_split(
+    X, Y, test_size=0.3, random_state=42
+)
+
+from sklearn.tree import DecisionTreeClassifier
+from sklearn.metrics import accuracy_score, classification_report
+
+dt_simple = DecisionTreeClassifier(random_state=42)
+dt_simple.fit(X_train, y_train)
+y_pred_simple = dt_simple.predict(X_test)
+print(accuracy_score(y_test, y_pred_simple))
+
+from sklearn.tree import plot_tree
+import matplotlib.pyplot as plt
+
+plt.figure(figsize=(20, 10))
+plot_tree(
+    dt_simple,
+    feature_names=X.columns.tolist(),
+    class_names=['Low Risk (0)', 'High Risk (1)'],
+    filled=True
+)
+plt.plot()
+
+import numpy as np
+
+path = DecisionTreeClassifier(random_state=42).cost_complexity_pruning_path(X_train, y_train)
+ccp_alphas = np.unique(path.ccp_alphas)
+print(ccp_alphas)
+
+for ccp_alpha in ccp_alphas:
+  dt_pruned = DecisionTreeClassifier(
+      ccp_alpha=ccp_alpha,
+      random_state=42
+      )
+  dt_pruned.fit(X_train, y_train)
+  y_pred_pruned = dt_pruned.predict(X_test)
+  print("ccp_alpha:", ccp_alpha, "accuracy score:", accuracy_score(y_test, y_pred_pruned))
+
+BEST_CCP_ALPHA = 0.019578383414861414
+dt_best = DecisionTreeClassifier(ccp_alpha=BEST_CCP_ALPHA, random_state=42)
+dt_best.fit(X_train, y_train)
+
+plt.figure(figsize=(20, 10))
+plot_tree(
+    dt_best,
+    feature_names=X.columns.tolist(),
+    class_names=['Low Risk (0)', 'High Risk (1)'],
+    filled=True
+)
+plt.plot()
+
+
