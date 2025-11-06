@@ -1,0 +1,23 @@
+import pandas as pd
+
+df = pd.read_csv('medical_drug_doses.csv')
+
+DOSE_PATTERN = r'(\d+\.?\d*)\s*(mg|ml|IU|%)'
+DRUG_NAME_PATTERN = r'(?:of|Prescribe|Administer|Instill|Take|tablets of)\s+([A-Z]\w+)'
+
+import re
+
+def extract(text):
+  dose_match = re.search(DOSE_PATTERN, text, re.IGNORECASE)
+  dose = dose_match.group(0) if dose_match else "N/A"
+
+  drug_match = re.search(DRUG_NAME_PATTERN, text)
+  drug = drug_match.group(1) if drug_match else "Unknown Drug"
+
+  return drug, dose
+
+ df[['Extracted Drug', 'Extracted Dose']] = df['text'].apply(
+    lambda x: pd.Series(extract(x))
+)
+
+df
